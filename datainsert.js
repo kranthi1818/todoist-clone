@@ -31,7 +31,9 @@ const runAsync = (sqlQuery, params = []) => {
   }
   
   async function insertUsers(users, batchSize = 50) {
+
     for (let i = 0; i < users.length; i += batchSize) {
+
       let batch = users.slice(i, i + batchSize)
   
       try {
@@ -47,8 +49,11 @@ const runAsync = (sqlQuery, params = []) => {
         await Promise.all(insertData)
   
         await execAsync("COMMIT")
+
       } catch (error) {
+
         await execAsync("ROLLBACK")
+        
         console.log("Error inserting User Data" + error)
       }
     }
@@ -155,6 +160,7 @@ const runAsync = (sqlQuery, params = []) => {
       let task_per_project = 10
   
       let users = generateUsers(user_count)
+
       await insertUsers(users, 50)
   
       await generateAndInsertProjects(project_count, user_count, 50000)

@@ -20,17 +20,19 @@ export function createComment(req, res) {
 }
 
 export function getAllComments(req, res) {
-    
   DB.all("SELECT * FROM comments", [], function (err, allComments) {
-
     if (err) return res.status(500).json({ err: err.message })
+
     res.status(200).json(allComments)
   })
-
 }
 
 export function getCommentsById(req, res) {
   const { id } = req.params
+
+  if (!id) {
+    return res.status(400).json({ error: "Comment ID is required" })
+  }
 
   DB.get(
     "SELECT * FROM comments WHERE id = ?",
@@ -52,10 +54,14 @@ export function getCommentsById(req, res) {
 export function deleteCommentsById(req, res) {
   const { id } = req.params
 
-  if (!id) return req.status(400).json({ error: "id required" })
+  if (!id) {
+    return res.status(400).json({ error: "id required" })
+  }
 
   DB.run("DELETE FROM comments WHERE id = ?", [id], function (err) {
-    if (err) return res.status(500).json({ err: err.message })
+    if (err) {
+      return res.status(500).json({ error: err.message })
+    }
 
     res
       .status(200)
@@ -65,15 +71,23 @@ export function deleteCommentsById(req, res) {
 
 export function deleteAllComments(req, res) {
   DB.run("DELETE FROM comments", [], function (err) {
-    if (err) return res.status(500).json({ err: err.message })
+    if (err) {
+      return res.status(500).json({ error: err.message })
+    }
 
-    res.status(200).json({ message: "All Comments Deleted Successfully" })
+    res.status(200).json({
+      message: `All comments deleted successfully.`,
+    })
   })
 }
 
 export function updateComment(req, res) {
   const { id } = req.params
   const { content } = req.body
+
+  if (!id || !content) {
+    return res.status(400).json({ error: "Both id and content are required" })
+  }
 
   DB.run(
     "UPDATE comments SET content = ? WHERE id = ?",
@@ -90,6 +104,10 @@ export function updateComment(req, res) {
 export function getAllCommentsFromUser(req, res) {
   const { id } = req.params
 
+  if (!id) {
+    return res.status(400).json({ error: "User ID is required" })
+  }
+
   DB.all(
     "SELECT * FROM comments WHERE user_id = ?",
     [id],
@@ -104,6 +122,10 @@ export function getAllCommentsFromUser(req, res) {
 export function getAllCommentsPerTask(req, res) {
   const { projectId, taskId } = req.params
 
+  if (!projectId || !taskId) {
+    return res.status(400).json({ error: "projectId and taskId are required" })
+  }
+
   DB.all(
     "SELECT * FROM comments WHERE project_id = ? AND task_id = ? ",
     [projectId, taskId],
@@ -116,7 +138,11 @@ export function getAllCommentsPerTask(req, res) {
 }
 
 export function getAllCommentsPerProject(req, res) {
-  const { projectId,taskId } = req.params
+  const { projectId } = req.params
+
+  if (!projectId) {
+    return res.status(400).json({ error: "projectId is required" })
+  }
 
   DB.all(
     "SELECT * FROM comments WHERE task_id IS NULL AND project_id = ?",
