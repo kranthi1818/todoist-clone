@@ -2,7 +2,8 @@ import sqlite3 from "sqlite3"
 
 const sqlite = sqlite3.verbose()
 
-import path, { resolve } from "path"
+import path from "path"
+
 import { fileURLToPath } from "url"
 
 const __filename = fileURLToPath(import.meta.url)

@@ -5,6 +5,7 @@ export function createUser(req,res){
     const {name,email} = req.body
 
     if(!name) return res.status(400).json({error:'user name is required'});
+
     DB.run(
         "INSERT INTO users (name,email) VALUES (?,?)",
         [name,email],
@@ -16,15 +17,17 @@ export function createUser(req,res){
 
 }
 
-export function getAllUsers(req,res){
-    DB.all(
-        'SELECT * FROM users',[],
-        function(err,user_table){
-            if(err) return res.status(500).json({err:err.message})
-                res.status(200).json(user_table)
-        }
-    )
+export function getAllUsers(req, res) {
+  DB.all(
+    'SELECT * FROM users', [],
+    function (err, users) {
+      if (err) return res.status(500).json({ error: err.message });
+
+      res.status(200).json(users);
+    }
+  );
 }
+
 
 export function getUserById(req,res){
     const {id} = req.params
@@ -33,6 +36,9 @@ export function getUserById(req,res){
         'SELECT * FROM users WHERE id=?',[id],
         function(err,row){
             if(err) return res.status(500).json({err:err.message})
+
+            if (!row) return res.status(404).json({ message: `User with id ${id} not found` });
+                
                 res.status(200).json(row)
         }
     )
@@ -62,6 +68,6 @@ export function deleteAllUsers(req, res) {
 
             res.status(200).json({ message: 'All users deleted successfully' });
         }
-    );
+    )
 }
 

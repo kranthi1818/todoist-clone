@@ -53,12 +53,12 @@ const runAsync = (sqlQuery, params = []) => {
       } catch (error) {
 
         await execAsync("ROLLBACK")
-        
+
         console.log("Error inserting User Data" + error)
       }
     }
   }
-  
+
   async function generateAndInsertProjects(
     Totalprojects,
     userCount,
@@ -87,13 +87,20 @@ const runAsync = (sqlQuery, params = []) => {
               }
 
         await execAsync("COMMIT")
+
         console.log(`Inserted Projects ${i} to ${endIndex}`)
+
       } catch (error) {
+
         await execAsync("ROLLBACK")
+
         console.log("error inserting Project batch")
+
       }
     }
+
     console.timeEnd("projects")
+
   }
   
   async function generateAndInsertTasks(totalTasks,tasksPerProject,batchSize=1000000) {
@@ -169,15 +176,23 @@ const runAsync = (sqlQuery, params = []) => {
       await generateAndInsertTasks(task_count,task_per_project,100000)
 
     } catch (error) {
+
       console.log("Error uploading data to database", error)
+
     }
   }
   
   uploadData()
+
     .then(() => {
+
       console.log("data uploaded successfully")
+      
     })
+
     .catch((err) => {
+
       console.log("data failed to upload", err)
+
     })
   

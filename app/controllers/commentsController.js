@@ -137,19 +137,4 @@ export function getAllCommentsPerTask(req, res) {
   )
 }
 
-export function getAllCommentsPerProject(req, res) {
-  const { projectId } = req.params
 
-  if (!projectId) {
-    return res.status(400).json({ error: "projectId is required" })
-  }
-
-  DB.all(
-    "SELECT * FROM comments WHERE task_id IS NULL AND project_id = ?",
-    [projectId],
-    function (err, commentsPerProject) {
-      if (err) return res.status(500).json({ err: err.message })
-      res.status(200).json(commentsPerProject)
-    }
-  )
-}
