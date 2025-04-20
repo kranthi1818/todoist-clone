@@ -9,7 +9,6 @@ import {
   updateComment,
   getAllCommentsFromUser,
   getAllCommentsPerTask,
-  getAllCommentsPerProject
 } from "../controllers/commentsController.js"
 
 const router = express.Router()
@@ -29,8 +28,6 @@ router.put("/comments/:id", updateComment)
 router.get("/comments/user/:id", getAllCommentsFromUser)
 
 router.get('/comments/:projectId/:taskId',getAllCommentsPerTask)
-
-router.get('/comments/project/:id',getAllCommentsPerProject)
 
 export default router
 

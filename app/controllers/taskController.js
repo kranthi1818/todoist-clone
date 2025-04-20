@@ -1,29 +1,49 @@
 import DB from "../config/db.js"
 
-export function createTask(req, res) {
+// export function createTask(req, res) {
 
-  const { project_id, content, description, due_date } = req.body
+//   const { project_id, content, description, due_date } = req.body
 
-  console.log(project_id, content, description, due_date)
+//   console.log(project_id, content, description, due_date)
 
-  if (!project_id || !content)
+//   if (!project_id || !content)
     
-    return res.status(404).json({ erro: "Project ID and Content are required" })
+//     return res.status(404).json({ erro: "Project ID and Content are required" })
 
-  DB.run(
+//   DB.run(
     
-    `INSERT INTO tasks (project_id,content,description,due_date) VALUES(?,?,?,?)`,
+//     `INSERT INTO tasks (project_id,content,description,due_date) VALUES(?,?,?,?)`,
 
-    [project_id, content, description, due_date],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ err: err.message })
-      }
-      res
-        .status(201)
-        .json({ id: this.lastID, project_id, content, description, due_date })
+//     [project_id, content, description, due_date],
+//     function (err) {
+//       if (err) {
+//         return res.status(500).json({ err: err.message })
+//       }
+//       res
+//         .status(201)
+//         .json({ id: this.lastID, project_id, content, description, due_date })
+//     }
+//   )
+// }
+
+import { taskCreation } from "../models/taskModel.js"
+
+export async function createTask(req, res) {
+  try {
+    const { project_id, content, description, due_date } = req.body
+
+    if (!project_id || !content) {
+      return res
+        .status(400)
+        .json({ error: "Project ID and Content are required" })
     }
-  )
+
+    const task = await taskCreation(project_id, content, description, due_date)
+
+    res.status(201).json(task)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
 export function getAllTasks(req, res) {
