@@ -1,140 +1,129 @@
 import DB from "../config/db.js"
 
-export function createComment(req, res) {
+import {createCommentInDB,
+  getAllCommentsFromDB,
+  getCommentsByIdFromDB,
+  deleteCommentByIdFromDB,
+  deleteAllCommentsFromDB,
+  updateCommentInDB,
+  getAllCommentsFromUserDB,
+  getAllCommentsPerTaskDB} from '../models/commentsModel.js'
+ 
+
+
+export async function createComment(req, res) {
   const { user_id, task_id, project_id, content } = req.body
 
   if (!user_id || !task_id || !project_id || !content) {
     return res.status(400).json({ error: "All fields are required" })
   }
 
-  DB.run(
-    "INSERT INTO comments (user_id, task_id, project_id, content) VALUES (?, ?, ?, ?)",
-
-    [user_id, task_id, project_id, content],
-
-    function (err) {
-      if (err) return res.status(500).json({ err: err.message })
-      res.status(200).json({ message: "Added Comment Successfully" })
-    }
-  )
+  try {
+    const result = await createCommentInDB(user_id, task_id, project_id, content)
+    res.status(200).json(result)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
 }
 
-export function getAllComments(req, res) {
-  DB.all("SELECT * FROM comments", [], function (err, allComments) {
-    if (err) return res.status(500).json({ err: err.message })
 
+export async function getAllComments(req, res) {
+  try {
+    const allComments = await getAllCommentsFromDB()
     res.status(200).json(allComments)
-  })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
 }
 
-export function getCommentsById(req, res) {
+
+export async function getCommentsById(req, res) {
   const { id } = req.params
 
   if (!id) {
     return res.status(400).json({ error: "Comment ID is required" })
   }
 
-  DB.get(
-    "SELECT * FROM comments WHERE id = ?",
-    [id],
-    function (err, commentData) {
-      if (err) return res.status(500).json({ error: err.message })
-
-      if (!commentData) {
-        return res
-          .status(404)
-          .json({ message: `No comment found with id ${id}` })
-      }
-
-      res.status(200).json(commentData)
-    }
-  )
+  try {
+    const comment = await getCommentsByIdFromDB(id)
+    res.status(200).json(comment)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
 }
 
-export function deleteCommentsById(req, res) {
+
+export async function deleteCommentsById(req, res) {
   const { id } = req.params
 
   if (!id) {
     return res.status(400).json({ error: "id required" })
   }
 
-  DB.run("DELETE FROM comments WHERE id = ?", [id], function (err) {
-    if (err) {
-      return res.status(500).json({ error: err.message })
-    }
-
-    res
-      .status(200)
-      .json({ message: `Deleted Comment with id ${id} Successfully` })
-  })
+  try {
+    const result = await deleteCommentByIdFromDB(id)
+    res.status(200).json(result)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
 }
 
-export function deleteAllComments(req, res) {
-  DB.run("DELETE FROM comments", [], function (err) {
-    if (err) {
-      return res.status(500).json({ error: err.message })
-    }
 
-    res.status(200).json({
-      message: `All comments deleted successfully.`,
-    })
-  })
+export async function deleteAllComments(req, res) {
+  try {
+    const result = await deleteAllCommentsFromDB()
+
+    res.status(200).json(result)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
 }
 
-export function updateComment(req, res) {
-  const { id } = req.params
-  const { content } = req.body
+export async function updateComment(req, res) {
+  const { id } = req.params;
+  const { content } = req.body;
 
   if (!id || !content) {
-    return res.status(400).json({ error: "Both id and content are required" })
+    return res.status(400).json({ error: "Both id and content are required" });
   }
 
-  DB.run(
-    "UPDATE comments SET content = ? WHERE id = ?",
-    [content, id],
-    function (err) {
-      if (err) return res.status(500).json({ err: err.message })
-      res
-        .status(200)
-        .json({ message: `updated the comment with ${id} successfully` })
-    }
-  )
+  try {
+    const result = await updateCommentInDB(id, content);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 }
 
-export function getAllCommentsFromUser(req, res) {
-  const { id } = req.params
+export async function getAllCommentsFromUser(req, res) {
+  const { id } = req.params;
 
   if (!id) {
-    return res.status(400).json({ error: "User ID is required" })
+    return res.status(400).json({ error: "User ID is required" });
   }
 
-  DB.all(
-    "SELECT * FROM comments WHERE user_id = ?",
-    [id],
-    function (err, allComments) {
-      if (err) return res.status(500).json({ err: err.message })
-
-      res.status(200).json(allComments)
-    }
-  )
+  try {
+    const allComments = await getAllCommentsFromUserDB(id);
+    res.status(200).json(allComments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 }
 
-export function getAllCommentsPerTask(req, res) {
-  const { projectId, taskId } = req.params
+
+export async function getAllCommentsPerTask(req, res) {
+  const { projectId, taskId } = req.params;
 
   if (!projectId || !taskId) {
-    return res.status(400).json({ error: "projectId and taskId are required" })
+    return res.status(400).json({ error: "projectId and taskId are required" });
   }
 
-  DB.all(
-    "SELECT * FROM comments WHERE project_id = ? AND task_id = ? ",
-    [projectId, taskId],
-    function (err, allCommentsPerTask) {
-      if (err) return res.status(500).json({ err: err.message })
-
-      res.status(200).json(allCommentsPerTask)
-    }
-  )
+  try {
+    const comments = await getAllCommentsPerTaskDB(projectId, taskId);
+    res.status(200).json(comments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 }
 
 

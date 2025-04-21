@@ -1,73 +1,72 @@
 import DB from "../config/db.js"
 
+import {
+  createUserInDB,
+  getAllUsersFromDB,
+  getUserByIdFromDB,
+  deleteUserByIdFromDB,
+  deleteAllUsersFromDB,
+} from "../models/userModel.js"
 
-export function createUser(req,res){
-    const {name,email} = req.body
+export async function createUser(req, res) {
+  const { name, email } = req.body
 
-    if(!name) return res.status(400).json({error:'user name is required'});
+  if (!name) {
+    return res.status(400).json({ error: "user name is required" })
+  }
 
-    DB.run(
-        "INSERT INTO users (name,email) VALUES (?,?)",
-        [name,email],
-        function(err){
-            if(err) return res.status(500).json({err:err.message})
-                res.status(201).json({id:this.lastID,name,email})
-        }
-    )
-
+  try {
+    const result = await createUserInDB(name, email)
+    res.status(201).json(result)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
 }
 
-export function getAllUsers(req, res) {
-  DB.all(
-    'SELECT * FROM users', [],
-    function (err, users) {
-      if (err) return res.status(500).json({ error: err.message });
-
-      res.status(200).json(users);
-    }
-  );
+export async function getAllUsers(req, res) {
+  try {
+    const users = await getAllUsersFromDB()
+    res.status(200).json(users)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
 }
 
+export async function getUserById(req, res) {
+  const { id } = req.params
 
-export function getUserById(req,res){
-    const {id} = req.params
-    
-    DB.get(
-        'SELECT * FROM users WHERE id=?',[id],
-        function(err,row){
-            if(err) return res.status(500).json({err:err.message})
-
-            if (!row) return res.status(404).json({ message: `User with id ${id} not found` });
-                
-                res.status(200).json(row)
-        }
-    )
+  try {
+    const user = await getUserByIdFromDB(id)
+    res.status(200).json(user)
+  } catch (error) {
+    const status = error.message.includes("not found") ? 404 : 500
+    res.status(status).json({ error: error.message })
+  }
 }
 
+export async function deleteUser(req, res) {
+  const { id } = req.params
 
-export function deleteUser(req,res){
-    const {id} = req.params
+  if (!id) {
+    return res.status(400).json({ error: "user id is required" })
+  }
 
-    if(!id) return res.status(400).json({error:'user id is required'})
-
-    DB.run(
-        'DELETE FROM users WHERE id = ?',[id],
-        function(err){
-            if(err) return res.status(500).json({error:err.message})
-                res.status(200).json({message:`User with id ${id} is deleted`})
-        }
-    )
+  try {
+    const result = await deleteUserByIdFromDB(id)
+    res.status(200).json(result)
+  } catch (error) {
+    const status = error.message.includes("not found") ? 404 : 500
+    res.status(status).json({ error: error.message })
+  }
 }
 
-
-export function deleteAllUsers(req, res) {
-    DB.run(
-        'DELETE FROM users',
-        function (err) {
-            if (err) return res.status(500).json({ error: err.message });
-
-            res.status(200).json({ message: 'All users deleted successfully' });
-        }
-    )
+export async function deleteAllUsers(req, res) {
+  try {
+    const result = await deleteAllUsersFromDB()
+    res.status(200).json(result)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
 }
+
 

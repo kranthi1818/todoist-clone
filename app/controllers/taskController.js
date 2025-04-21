@@ -1,38 +1,11 @@
-import DB from "../config/db.js"
 
-// export function createTask(req, res) {
-
-//   const { project_id, content, description, due_date } = req.body
-
-//   console.log(project_id, content, description, due_date)
-
-//   if (!project_id || !content)
-    
-//     return res.status(404).json({ erro: "Project ID and Content are required" })
-
-//   DB.run(
-    
-//     `INSERT INTO tasks (project_id,content,description,due_date) VALUES(?,?,?,?)`,
-
-//     [project_id, content, description, due_date],
-//     function (err) {
-//       if (err) {
-//         return res.status(500).json({ err: err.message })
-//       }
-//       res
-//         .status(201)
-//         .json({ id: this.lastID, project_id, content, description, due_date })
-//     }
-//   )
-// }
-
-import { taskCreation } from "../models/taskModel.js"
+import { taskCreation,getTasksAll,updateTaskStatus,deleteTaskById} from "../models/taskModel.js"
 
 export async function createTask(req, res) {
   try {
     const { project_id, content, description, due_date } = req.body
 
-    if (!project_id || !content) {
+    if (!project_id || !content || !description || !due_date) {
       return res
         .status(400)
         .json({ error: "Project ID and Content are required" })
@@ -46,41 +19,37 @@ export async function createTask(req, res) {
   }
 }
 
-export function getAllTasks(req, res) {
-  DB.all(`SELECT * FROM tasks`, [], function (err, data) {
-    if (err) {
-      return res.status(500).json({ err: err.message })
-    }
-    res.status(201).json(data)
-  })
+export async function getAllTasks(req, res) {
+  try {
+    const tasks = await getTasksAll()
+    res.status(200).json(tasks)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
-export function updateTask(req, res) {
-  
-  let { id } = req.params
-  let { is_completed } = req.body
 
-  DB.run(
-    `UPDATE tasks set is_completed = ? where id = ?`,
-    [is_completed, id],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ err: err.message })
-      }
-      if (this.changes === 0)
-        return res.status(404).json({ error: "Task not found" })
-      res.status(201).json({ message: "updated task successfully" })
-    }
-  )
+export async function updateTask(req, res) {
+  try {
+    const { id } = req.params
+    const { is_completed ,description,content} = req.body
+
+    const result = await updateTaskStatus(id, is_completed,content,description)
+
+    res.status(200).json(result)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
-export function deleteTask(req, res) {
-  const { id } = req.params
 
-  DB.run(`DELETE FROM tasks WHERE id = ?`, [id], function (err) {
-    if (err) {
-      return res.status(400).json({ message: err.message })
-    }
-    res.status(201).json({ message: "task deleted successfully" })
-  })
+export async function deleteTask(req, res) {
+  const { id } = req.params;
+
+  try {
+    const result = await deleteTaskById(id);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
 }
